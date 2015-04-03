@@ -1,13 +1,20 @@
 表单验证手机版
 -------
 
-调用方法：
+**调用方法**：
 
+- `fromElement.isCheck([tip])`  
+检查表单是否通过验证[boolean]，参数tip：可选，是否显示提示信息，默认false。
+例如：`document.querySelector('form').isCheck(true);`
 
-- `from.isCheck([tip])`  检查表单是否通过验证[boolean]，参数tip： 是否显示提示信息
-- `form.bindCheck([event])` 绑定即时验证，参数 event：可选，默认触发事件为 change
+- `fromElement.bindCheck([event])` 
+绑定即时验证，参数 event：可选，默认触发事件为 `change`
+例如：`document.querySelector('form').bindCheck('blur');`
 
-需要验证的表单元素需要添加属性 `data-validate`，以下元素不在验证范围内：`['submit', 'reset', 'button', 'hidden', undefined]`
+**data-validate**
+
+需要验证的表单元素需要添加属性 `data-validate`
+以下元素不在验证范围内：`['submit', 'reset', 'button', 'hidden', undefined]`
 例如：`<input type="text" data-validate="empty,email"/>`
 
 data-validate 属性格式：
@@ -30,5 +37,5 @@ data-validate 属性值：
 - `cn`：验证中文
 - `plus`：验证正整数
 - `checkval`：验证值是否与其他表单元素相同，
-             使用方法： `checkval([selector])` selector为表单元素选择器
-             例如： `data-validate="checkval([name='password'])"`
+             使用方法： `checkval([selector])`  参数 selector：表单元素选择器
+             例如： `data-validate="empty,checkval([name='password'])"`

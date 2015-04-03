@@ -79,7 +79,19 @@
         }
     };
     // 验证文本
-    ['email', 'phone', 'tell', 'number', 'integer', 'date', 'time', 'cn', 'plus', 'url', 'password'].forEach(function(rule) {
+    [
+        'email',
+        'phone',
+        'tell',
+        'number',
+        'integer',
+        'date',
+        'time',
+        'cn',
+        'plus',
+        'url',
+        'password'
+    ].forEach(function(rule) {
         testRule[rule] = function(elem) {
             return !elem.v_get_val() || regex[rule] && regex[rule].test(elem.v_get_val());
         };
