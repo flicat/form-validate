@@ -1,0 +1,267 @@
+/**
+ * @Author: flicat
+ * @Date: 15-4-2
+ * @Describe: 表单验证手机版
+ *
+ * @ from.isCheck([tip])  检查表单是否通过验证[boolean]，参数tip： 是否显示提示信息
+ * @ form.bindCheck([event]) 绑定即时验证，参数 event：可选，默认触发事件为 change
+ * @ form.validateTip(elem, rule, tip) 可选配置，验证提示信息回调函数。默认在表单元素后添加 提示
+ *   参数 elem：当前验证的节点；rule：验证规则，成功则为 'succeed'；tip：默认验证提示信息。
+ *
+ * 需要验证的表单元素需要添加属性 data-validate，以下元素不在验证范围内：['submit', 'reset', 'button', 'hidden', undefined]
+ * data-validate 属性格式
+ *     验证单一格式：data-validate="empty"
+ *     验证多个格式：data-validate="empty,email"
+ *     验证是否符合其中一个：data-validate="phone|email"
+ *     多个规则组合验证： data-validate="empty,phone|email"
+ *
+ * data-validate 属性值
+ *     empty：验证非空
+ *     email：验证电子邮件
+ *     phone：验证手机号码
+ *     tell：验证固话
+ *     number：验证数字
+ *     integer：验证整数
+ *     url：验证网址
+ *     password：验证密码
+ *     cn：验证中文
+ *     plus：验证正整数
+ *     checkval：验证值是否与其他表单元素相同，
+ *              使用方法： checkval([selector]) selector为表单元素选择器
+ *              例如 data-validate="checkval([name='password'])"
+ */
+
+(function() {
+
+    // 表单验证提示信息
+    var lang = {
+        'empty': '不能为空！',
+        'email': '电子邮箱格式错误！',
+        'phone': '手机号码格式错误！',
+        'tell': '电话号码格式错误！',
+        'number': '请输入数字！',
+        'integer': '请输入整数！',
+        'url': '请输入正确的网址！',
+        'password': '密码格式错误，请输入6到20个字符，必须包含数字和字母！',
+        'checkval': '两次输入的密码不一致！',
+        'error': '格式错误！',
+        'register': '该账号已经注册！',
+        'verify': '验证码错误！',
+        'cn': '请输入中文！',
+        'succeed': 'OK！'
+    };
+
+    // 文本格式验证正则表达式
+    var regex = {
+        email: /^(\w)+(\W\w+)*@(\w)+(-\w+)*((\.\w+)+)$/,             // email
+        phone: /^1[3|4|5|8][0-9]\d{8,8}$/,                           // 手机号码
+        tell: /\d{3}-\d{8}|\d{4}-\d{7,8}/,                           // 固话
+        number: /^[\-\+]?((\d+)([\.,](\d+))?|([\.,](\d+))?)$/,       // 数字
+        integer: /^[\-\+]?((\d+))$/,                                 // 整数
+        date: /^\d{4}\W\d{1,2}\W\d{1,2}$/,                           // 日期
+        time: /^\d{1,2}:\d{1,2}$/,                                   // 时间
+        cn: /[^u4e00-u9fa5]/,                                        // 中文
+        plus: /^[\+]?((\d+)([\.,](\d+))?|([\.,](\d+))?)$/,           // 正数
+        url: /^[a-zA-z]+:\/\/(\w+(-\w+)*)(\.(\w+(-\w+)*))*/,         // 链接
+        password: /^[\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]{6,30}$/    // 密码
+    };
+
+    // 表单验证规则
+    var testRule = {
+        // 验证为空
+        empty: function(elem) {
+            return !!elem.getVal();
+        },
+        // 验证重复密码
+        checkval: function(elem, selector) {
+            var val = elem.getVal();
+            var passwordElem = elem.form.querySelector(selector);
+            return !passwordElem || val === passwordElem.getVal();
+        }
+    };
+    // 验证文本
+    ['email', 'phone', 'tell', 'number', 'integer', 'date', 'time', 'cn', 'plus', 'url', 'password'].forEach(function(rule) {
+        testRule[rule] = function(elem) {
+            return !elem.getVal() || regex[rule] && regex[rule].test(elem.getVal());
+        };
+    });
+
+    // 获取验证规则
+    var getCheckRule = function(rules) {
+        // 分解规则与参数
+        var getRuleParam = function(rule) {
+            var params = /^(\w+)\((.*)\)$/g.exec(rule);
+            if(params && params.length === 3){
+                return {
+                    rule: params[1],
+                    param: params[2]
+                };
+            } else {
+                return {
+                    rule: rule,
+                    param: null
+                };
+            }
+        };
+
+        // 获取需要验证的规则
+        var ruleStr = rules.split(',').filter(function(item) {
+            return !!item;
+        });
+
+        // 获取可选验证规则数组
+        var ruleArr = ruleStr.map(function(item) {
+            var rule = item.split('|').filter(function(item) {
+                return !!item;
+            });
+            return rule.length == 1 ? rule[0] : rule;
+        });
+
+        return ruleArr.map(function(item) {
+            if(Array.isArray(item)){
+                return item.map(function(subItem) {
+                    return getRuleParam(subItem);
+                });
+            } else {
+                return getRuleParam(item);
+            }
+        });
+    };
+
+    // 表单元素验证方法
+    var checkMethod = function(elem) {
+        var errorRule = 'succeed', isChecked;
+
+        // 验证规则  {rule:[验证规则], param:[规则参数]}
+        var checkRule = getCheckRule(elem.dataset.validate);
+
+        isChecked = checkRule.every(function(ruleObj) {
+            var checkResult;
+            if(Array.isArray(ruleObj) && ruleObj.length){
+                checkResult = ruleObj.some(function(ruleSubObj) {
+                    return !testRule[ruleSubObj.rule] || testRule[ruleSubObj.rule](elem, ruleSubObj.param);
+                });
+                errorRule = checkResult ? 'succeed' : ruleObj[0].rule;
+            } else {
+                checkResult = !testRule[ruleObj.rule] || testRule[ruleObj.rule](elem, ruleObj.param);
+                errorRule = checkResult ? 'succeed' : ruleObj.rule;
+            }
+
+            return checkResult;
+        });
+
+        return {
+            isChecked: isChecked,
+            errorRule: errorRule
+        };
+    };
+
+    // 不需要验证的元素
+    var noValidateElement = ['submit', 'reset', 'button', 'hidden', undefined];
+
+    // 获取需要验证的元素并绑定取值方法
+    var getValidateElement = function(elements) {
+
+        // 获取需要验证的元素
+        var validateElem = [].slice.call(elements).filter(function(elem) {
+            return noValidateElement.indexOf(elem.type) < 0 && !elem.disabled && !!elem.dataset.validate;
+        });
+
+        // 绑定取值方法
+        validateElem.forEach(function(elem) {
+            elem.getVal = (function(){
+                var type = elem.type;
+                if(/radio|checkbox/ig.test(type)) {
+                    // 单选/复选框
+                    var name = elem.name, elements;
+                    if(name){
+                        elements = [].slice.call(elem.form[name]);
+                        return function() {
+                            var valArr = [];
+                            elements.forEach(function(input) {
+                                if(input.checked){
+                                    valArr.push(input.value);
+                                }
+                            });
+                            return valArr.join(',');
+                        };
+                    } else {
+                        return function() {
+                            return this.checked ? this.value : null;
+                        }
+                    }
+                } else {
+                    // 文本框
+                    return function() {
+                        return this.value;
+                    }
+                }
+            })();
+        });
+
+        return validateElem;
+    };
+
+    // 错误提示信息
+    HTMLFormElement.prototype.validateTip = function(elem, rule, tip) {
+        if(!elem.tipElem){
+            // 如果是单选/复选框则显示最后一条提示信息
+            if(/radio|checkbox/ig.test(elem.type) && elem.name) {
+                var nodeArr = elem.form[elem.name];
+                var lastNode = nodeArr[nodeArr.length - 1];
+                if(!lastNode.tipElem){
+                    elem.tipElem = lastNode.tipElem = document.createElement('em');
+                    lastNode.parentNode.appendChild(elem.tipElem);
+                } else {
+                    elem.tipElem = lastNode.tipElem;
+                }
+            } else {
+                elem.tipElem = document.createElement('em');
+                elem.parentNode.appendChild(elem.tipElem);
+            }
+        }
+        elem.tipElem.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
+        elem.tipElem.innerHTML = tip;
+    };
+
+    // 检查是否通过验证
+    HTMLFormElement.prototype.isCheck = function(tip) {
+        var form = this;
+        // 需要验证的表单元素
+        var elements = getValidateElement(form.elements);
+
+        // 验证表单元素
+        return elements.every(function(elem) {
+            var result = checkMethod(elem);
+            if(!!tip){
+                form.validateTip(elem, result.errorRule, lang[result.errorRule]);
+            }
+            if(!result.isChecked){
+                elem.focus();
+            }
+            return result.isChecked;
+        });
+    };
+
+    // 绑定即时验证
+    HTMLFormElement.prototype.bindCheck = function(event) {
+        var form = this;
+
+        // 绑定的触发事件，默认为 blur
+        event = typeof event === 'string' ? event : 'change';
+
+        // 需要验证的表单元素
+        var elements = getValidateElement(form.elements);
+
+        // 表单元素绑定验证
+        elements.forEach(function(elem) {
+            elem.addEventListener(event, function() {
+                var result = checkMethod(elem);
+                form.validateTip(elem, result.errorRule, lang[result.errorRule]);
+            }, false);
+        });
+
+        return form;
+    };
+
+})();

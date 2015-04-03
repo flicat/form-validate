@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>表单验证插件</title>
+    <style type="text/css">
+        .tips {
+            font-size: small;
+            font-style: normal;
+        }
+        .error {
+            color: #f00;
+        }
+        .succeed {
+            color: #0f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-wrap no-card">
+        <form class="form" action="#">
+            <input class="hidden" type="hidden" value="1" name="id" data-validate="empty,password"/>
+            <div class="input-item">
+                <label class="label">姓名</label>
+                <div class="input-inner">
+                    <input class="text-input" type="text" data-validate="empty"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">手机/邮箱</label>
+                <div class="input-inner">
+                    <input class="text-input" type="text" data-validate="phone|email"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">旧密码</label>
+                <div class="input-inner">
+                    <input class="text-input" type="password" disabled data-validate="empty,password"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">新密码</label>
+                <div class="input-inner">
+                    <input class="text-input" id="new-password" type="password" data-validate="empty,password"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">重复密码</label>
+                <div class="input-inner">
+                    <input class="text-input" type="password" data-validate="empty,checkval(#new-password)"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">职业</label>
+                <div class="input-inner">
+                    <select class="select" data-validate="empty">
+                        <option value="">请选择</option>
+                        <option value="学生">学生</option>
+                        <option value="公司白领">公司白领</option>
+                        <option value="企业高管">企业高管</option>
+                        <option value="专业技术人员">专业技术人员</option>
+                        <option value="非在职人员">非在职人员</option>
+                        <option value="其它">其它</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">爱好</label>
+                <div class="input-inner">
+                    <label class="checkbox">
+                        <input class="checkbox-input" type="checkbox" name="aihao" value="b" data-validate="empty"/>
+                        <span>装逼</span>
+                    </label>
+                    <label class="checkbox">
+                        <input class="checkbox-input" type="checkbox" name="aihao" value="d" data-validate="empty"/>
+                        <span>打豆豆</span>
+                    </label>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">喜欢的明星</label>
+                <div class="input-inner">
+                    <select class="select" multiple data-validate="empty">
+                        <option value="周杰伦">周杰伦</option>
+                        <option value="蔡依林">蔡依林</option>
+                        <option value="李连杰">李连杰</option>
+                        <option value="赵文卓">赵文卓</option>
+                        <option value="甄子丹">甄子丹</option>
+                        <option value="赵本山">赵本山</option>
+                    </select>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">自我介绍</label>
+                <div class="input-inner">
+                    <textarea name="me" cols="30" rows="10" data-validate="empty"></textarea>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">请选择头像</label>
+                <div class="input-inner">
+                    <input class="file-input" type="file" data-validate="empty"/>
+                </div>
+            </div>
+            <div class="input-item">
+                <label class="label">是否同意信息推送</label>
+                <div class="input-inner">
+                    <label class="checkbox">
+                        <input class="radio-input" type="radio" name="agreed" value="yes" data-validate="empty"/>
+                        <span>同意</span>
+                    </label>
+                    <label class="checkbox">
+                        <input class="radio-input" type="radio" name="agreed" value="no" data-validate="empty"/>
+                        <span>不同意</span>
+                    </label>
+                </div>
+            </div>
+            <div class="input-item">
+                <div class="input-inner">
+                    <label class="checkbox">
+                        <input class="checkbox-input" type="checkbox" value="yes" data-validate="empty"/>
+                        <span>本人已详细阅读以上内容，保证填写内容真实性。</span>
+                    </label>
+                </div>
+            </div>
+            <div class="row btn-wrap">
+                <button class="button" type="button" id="submit" data-validate="empty,password">校验</button>
+                <button class="button" type="submit" data-validate="empty,email">提交</button>
+                <button class="button" type="reset" data-validate="empty,phone">重置</button>
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript" src="js/validate.js" charset="utf-8"></script>
+    <script type="text/javascript" charset="utf-8">
+        var form = document.querySelector('form');
+//        form.validateTip = function(elem, rule, tips) {
+//            if(rule === 'succeed'){
+//                elem.style.border = '1px solid #0f0';
+//            } else {
+//                elem.style.border = '1px solid #f00';
+//            }
+//        };
+        form.bindCheck();
+        document.getElementById('submit').onclick = function() {
+            console.log(form.isCheck(true));
+        };
+    </script>
+</body>
+</html>
