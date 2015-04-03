@@ -180,17 +180,13 @@
                     if(name){
                         elements = [].slice.call(elem.form[name]);
                         return function() {
-                            var valArr = [];
-                            elements.forEach(function(input) {
-                                if(input.checked){
-                                    valArr.push(input.value);
-                                }
+                            return elements.some(function(input) {
+                                return input.checked;
                             });
-                            return valArr.join(',');
                         };
                     } else {
                         return function() {
-                            return this.checked ? this.value : null;
+                            return this.checked;
                         }
                     }
                 } else {
