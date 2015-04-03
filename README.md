@@ -6,10 +6,9 @@
 
 - `from.isCheck([tip])`  检查表单是否通过验证[boolean]，参数tip： 是否显示提示信息
 - `form.bindCheck([event])` 绑定即时验证，参数 event：可选，默认触发事件为 change
-- `form.validateTip(elem, rule, tip)` 可选配置，验证提示信息回调函数。默认在表单元素后添加 提示
-  参数 elem：当前验证的节点；rule：验证规则，成功则为 'succeed'；tip：默认验证提示信息。
 
 需要验证的表单元素需要添加属性 `data-validate`，以下元素不在验证范围内：`['submit', 'reset', 'button', 'hidden', undefined]`
+例如：`<input type="text" data-validate="empty,email"/>`
 
 data-validate 属性格式：
 
@@ -32,4 +31,4 @@ data-validate 属性值：
 - `plus`：验证正整数
 - `checkval`：验证值是否与其他表单元素相同，
              使用方法： `checkval([selector])` selector为表单元素选择器
-             例如 `data-validate="checkval([name='password'])"`
+             例如： `data-validate="checkval([name='password'])"`
