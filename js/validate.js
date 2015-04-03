@@ -70,39 +70,69 @@
     var testRule = {
         // 验证为空
         empty: function(elem) {
-            return !!elem.getVal();
+            return !!elem.v_get_val();
         },
         // 验证重复密码
         checkval: function(elem, selector) {
-            var val = elem.getVal();
+            var val = elem.v_get_val();
             var passwordElem = elem.form.querySelector(selector);
-            return !passwordElem || val === passwordElem.getVal();
+            return !passwordElem || val === passwordElem.value;
         }
     };
     // 验证文本
     ['email', 'phone', 'tell', 'number', 'integer', 'date', 'time', 'cn', 'plus', 'url', 'password'].forEach(function(rule) {
         testRule[rule] = function(elem) {
-            return !elem.getVal() || regex[rule] && regex[rule].test(elem.getVal());
+            return !elem.v_get_val() || regex[rule] && regex[rule].test(elem.v_get_val());
         };
     });
 
+    // 表单元素验证方法
+    var checkMethod = function(elem) {
+        var errorRule = 'succeed', isChecked;
+
+        // 验证结果
+        isChecked = elem.v_rules.every(function(ruleObj) {
+            var checkResult;
+            if(Array.isArray(ruleObj) && ruleObj.length){
+                checkResult = ruleObj.some(function(ruleSubObj) {
+                    return !testRule[ruleSubObj.rule] || testRule[ruleSubObj.rule](elem, ruleSubObj.param);
+                });
+                errorRule = checkResult ? 'succeed' : ruleObj[0].rule;
+            } else {
+                checkResult = !testRule[ruleObj.rule] || testRule[ruleObj.rule](elem, ruleObj.param);
+                errorRule = checkResult ? 'succeed' : ruleObj.rule;
+            }
+
+            return checkResult;
+        });
+
+        // 将验证结果保存为表单元素属性
+        elem.v_is_checked = isChecked;
+
+        return {
+            isChecked: isChecked,
+            errorRule: errorRule
+        };
+    };
+
+    // 分解规则与参数
+    var getRuleParam = function(rule) {
+        var params = /^(\w+)\((.*)\)$/g.exec(rule);
+        if(params && params.length === 3){
+            return {
+                rule: params[1],
+                param: params[2]
+            };
+        } else {
+            return {
+                rule: rule,
+                param: null
+            };
+        }
+    };
+
     // 获取验证规则
     var getCheckRule = function(rules) {
-        // 分解规则与参数
-        var getRuleParam = function(rule) {
-            var params = /^(\w+)\((.*)\)$/g.exec(rule);
-            if(params && params.length === 3){
-                return {
-                    rule: params[1],
-                    param: params[2]
-                };
-            } else {
-                return {
-                    rule: rule,
-                    param: null
-                };
-            }
-        };
 
         // 获取需要验证的规则
         var ruleStr = rules.split(',').filter(function(item) {
@@ -128,34 +158,6 @@
         });
     };
 
-    // 表单元素验证方法
-    var checkMethod = function(elem) {
-        var errorRule = 'succeed', isChecked;
-
-        // 验证规则  {rule:[验证规则], param:[规则参数]}
-        var checkRule = getCheckRule(elem.dataset.validate);
-
-        isChecked = checkRule.every(function(ruleObj) {
-            var checkResult;
-            if(Array.isArray(ruleObj) && ruleObj.length){
-                checkResult = ruleObj.some(function(ruleSubObj) {
-                    return !testRule[ruleSubObj.rule] || testRule[ruleSubObj.rule](elem, ruleSubObj.param);
-                });
-                errorRule = checkResult ? 'succeed' : ruleObj[0].rule;
-            } else {
-                checkResult = !testRule[ruleObj.rule] || testRule[ruleObj.rule](elem, ruleObj.param);
-                errorRule = checkResult ? 'succeed' : ruleObj.rule;
-            }
-
-            return checkResult;
-        });
-
-        return {
-            isChecked: isChecked,
-            errorRule: errorRule
-        };
-    };
-
     // 不需要验证的元素
     var noValidateElement = ['submit', 'reset', 'button', 'hidden', undefined];
 
@@ -167,9 +169,10 @@
             return noValidateElement.indexOf(elem.type) < 0 && !elem.disabled && !!elem.dataset.validate;
         });
 
-        // 绑定取值方法
         validateElem.forEach(function(elem) {
-            elem.getVal = (function(){
+
+            // 绑定取值方法
+            elem.v_get_val = (function(){
                 var type = elem.type;
                 if(/radio|checkbox/ig.test(type)) {
                     // 单选/复选框
@@ -197,6 +200,10 @@
                     }
                 }
             })();
+
+            // 获取验证规则   {rule:[验证规则], param:[规则参数]}
+            elem.v_rules = getCheckRule(elem.dataset.validate);
+
         });
 
         return validateElem;
@@ -204,24 +211,24 @@
 
     // 错误提示信息
     HTMLFormElement.prototype.validateTip = function(elem, rule, tip) {
-        if(!elem.tipElem){
+        if(!elem.v_tip_node){
             // 如果是单选/复选框则显示最后一条提示信息
             if(/radio|checkbox/ig.test(elem.type) && elem.name) {
                 var nodeArr = elem.form[elem.name];
                 var lastNode = nodeArr[nodeArr.length - 1];
-                if(!lastNode.tipElem){
-                    elem.tipElem = lastNode.tipElem = document.createElement('em');
-                    lastNode.parentNode.appendChild(elem.tipElem);
+                if(!lastNode.v_tip_node){
+                    elem.v_tip_node = lastNode.v_tip_node = document.createElement('em');
+                    lastNode.parentNode.appendChild(elem.v_tip_node);
                 } else {
-                    elem.tipElem = lastNode.tipElem;
+                    elem.v_tip_node = lastNode.v_tip_node;
                 }
             } else {
-                elem.tipElem = document.createElement('em');
-                elem.parentNode.appendChild(elem.tipElem);
+                elem.v_tip_node = document.createElement('em');
+                elem.parentNode.appendChild(elem.v_tip_node);
             }
         }
-        elem.tipElem.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
-        elem.tipElem.innerHTML = tip;
+        elem.v_tip_node.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
+        elem.v_tip_node.innerHTML = tip;
     };
 
     // 检查是否通过验证
@@ -229,6 +236,9 @@
         var form = this;
         // 需要验证的表单元素
         var elements = getValidateElement(form.elements);
+
+        // 将需要验证的元素保存至表单属性
+        form.validateElements = elements;
 
         // 验证表单元素
         return elements.every(function(elem) {
@@ -252,6 +262,9 @@
 
         // 需要验证的表单元素
         var elements = getValidateElement(form.elements);
+
+        // 将需要验证的元素保存至表单属性
+        form.validateElements = elements;
 
         // 表单元素绑定验证
         elements.forEach(function(elem) {

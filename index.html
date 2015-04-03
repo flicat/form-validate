@@ -134,14 +134,36 @@
     <script type="text/javascript" src="js/validate.js" charset="utf-8"></script>
     <script type="text/javascript" charset="utf-8">
         var form = document.querySelector('form');
-//        form.validateTip = function(elem, rule, tips) {
-//            if(rule === 'succeed'){
-//                elem.style.border = '1px solid #0f0';
-//            } else {
-//                elem.style.border = '1px solid #f00';
-//            }
-//        };
+        // 重写插件默认的验证提示信息
+        form.validateTip = function(elem, rule, tip) {
+            if(!elem.v_tip_node){
+                // 如果是单选/复选框则显示最后一条提示信息
+                if(/radio|checkbox/ig.test(elem.type) && elem.name) {
+                    var nodeArr = elem.form[elem.name];
+                    var lastNode = nodeArr[nodeArr.length - 1];
+                    if(!lastNode.v_tip_node){
+                        elem.v_tip_node = lastNode.v_tip_node = document.createElement('em');
+                        lastNode.parentNode.appendChild(elem.v_tip_node);
+                    } else {
+                        elem.v_tip_node = lastNode.v_tip_node;
+                    }
+                } else {
+                    elem.v_tip_node = document.createElement('em');
+                    elem.parentNode.appendChild(elem.v_tip_node);
+                }
+            }
+            elem.v_tip_node.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
+            elem.v_tip_node.innerHTML = tip;
+
+            if(rule === 'succeed'){
+                elem.style.border = '1px solid #0f0';
+            } else {
+                elem.style.border = '1px solid #f00';
+            }
+        };
+        // 绑定验证
         form.bindCheck();
+        // 点击验证
         document.getElementById('submit').onclick = function() {
             console.log(form.isCheck(true));
         };
