@@ -1,12 +1,11 @@
 /**
- * @Author: flicat
+ * @Author: liyuelong1020@gmail.com
  * @Date: 15-4-2
  * @Describe: 表单验证手机版
  *
  * @ from.isCheck([tip])  检查表单是否通过验证[boolean]，参数tip： 是否显示提示信息
  * @ form.bindCheck([event]) 绑定即时验证，参数 event：可选，默认触发事件为 change
- * @ form.validateTip(elem, rule, tip) 可选配置，验证提示信息回调函数。默认在表单元素后添加 提示
- *   参数 elem：当前验证的节点；rule：验证规则，成功则为 'succeed'；tip：默认验证提示信息。
+ * 例如：<input type="text" data-validate="empty,email"/>
  *
  * 需要验证的表单元素需要添加属性 data-validate，以下元素不在验证范围内：['submit', 'reset', 'button', 'hidden', undefined]
  * data-validate 属性格式
