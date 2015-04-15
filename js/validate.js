@@ -177,7 +177,7 @@
 
         // 获取需要验证的元素
         var validateElem = [].slice.call(elements).filter(function(elem) {
-            return noValidateElement.indexOf(elem.type) < 0 && !elem.disabled && !!elem.dataset.validate;
+            return noValidateElement.indexOf(elem.type) < 0 && !elem.disabled && !!elem.getAttribute('data-validate');
         });
 
         validateElem.forEach(function(elem) {
@@ -209,37 +209,15 @@
             })();
 
             // 获取验证规则   {rule:[验证规则], param:[规则参数]}
-            elem.v_rules = getCheckRule(elem.dataset.validate);
+            elem.v_rules = getCheckRule(elem.getAttribute('data-validate'));
 
         });
 
         return validateElem;
     };
 
-    // 错误提示信息
-    HTMLFormElement.prototype.validateTip = function(elem, rule, tip) {
-        if(!elem.v_tip_node){
-            // 如果是单选/复选框则显示最后一条提示信息
-            if(/radio|checkbox/ig.test(elem.type) && elem.name) {
-                var nodeArr = elem.form[elem.name];
-                var lastNode = nodeArr[nodeArr.length - 1];
-                if(!lastNode.v_tip_node){
-                    elem.v_tip_node = lastNode.v_tip_node = document.createElement('em');
-                    lastNode.parentNode.appendChild(elem.v_tip_node);
-                } else {
-                    elem.v_tip_node = lastNode.v_tip_node;
-                }
-            } else {
-                elem.v_tip_node = document.createElement('em');
-                elem.parentNode.appendChild(elem.v_tip_node);
-            }
-        }
-        elem.v_tip_node.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
-        elem.v_tip_node.innerHTML = tip;
-    };
-
     // 检查是否通过验证
-    HTMLFormElement.prototype.isCheck = function(tip) {
+    var isCheck = function(tip) {
         var form = this;
         // 需要验证的表单元素
         var elements = getValidateElement(form.elements);
@@ -253,15 +231,12 @@
             if(!!tip){
                 form.validateTip(elem, result.errorRule, lang[result.errorRule]);
             }
-            if(!result.isChecked){
-                elem.focus();
-            }
             return result.isChecked;
         });
     };
 
     // 绑定即时验证
-    HTMLFormElement.prototype.bindCheck = function(event) {
+    var bindCheck = function(event) {
         var form = this;
 
         // 绑定的触发事件，默认为 blur
@@ -284,4 +259,43 @@
         return form;
     };
 
+    // 错误提示信息
+    var validateTip = function(elem, rule, tip) {
+        if(!elem.v_tip_node){
+            // 如果是单选/复选框则显示最后一条提示信息
+            if(/radio|checkbox/ig.test(elem.type) && elem.name) {
+                var nodeArr = elem.form[elem.name];
+                var lastNode = nodeArr[nodeArr.length - 1];
+                if(!lastNode.v_tip_node){
+                    elem.v_tip_node = lastNode.v_tip_node = document.createElement('em');
+                    lastNode.parentNode.appendChild(elem.v_tip_node);
+                } else {
+                    elem.v_tip_node = lastNode.v_tip_node;
+                }
+            } else {
+                elem.v_tip_node = document.createElement('em');
+                elem.parentNode.appendChild(elem.v_tip_node);
+            }
+        }
+        elem.v_tip_node.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
+        elem.v_tip_node.innerHTML = tip;
+        elem.focus();
+    };
+
+    HTMLFormElement.prototype.validateTip = validateTip;
+
+    HTMLFormElement.prototype.isCheck = isCheck;
+
+    HTMLFormElement.prototype.bindCheck = bindCheck;
+
+    return {
+        isCheck: function(form, tip) {
+            isCheck.call(form, tip);
+            !form.validateTip && (form.validateTip = validateTip);
+        },
+        bindCheck: function(form, event) {
+            bindCheck.call(form, event);
+            !form.validateTip && (form.validateTip = validateTip);
+        }
+    };
 })();
