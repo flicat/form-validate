@@ -39,3 +39,12 @@ data-validate 属性值：
 - `checkval`：验证值是否与其他表单元素相同，
              使用方法： `checkval([selector])`  参数 selector：表单元素选择器
              例如： `data-validate="empty,checkval([name='password'])"`
+- `len：验证值的长度
+             使用方法： `len([number])`
+             例如 `data-validate="len(11)"`
+- `minlen：验证值的最小长度
+             使用方法： `minlen([number])`
+             例如 `data-validate="minlen(1)"`
+- `maxlen：验证值的最大长度
+             使用方法： `maxlen([number])`
+             例如 `data-validate="maxlen(20)"`

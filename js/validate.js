@@ -28,6 +28,15 @@
  *     checkval：验证值是否与其他表单元素相同，
  *              使用方法： checkval([selector]) selector为表单元素选择器
  *              例如 data-validate="checkval([name='password'])"
+ *     len：验证值的长度
+ *              使用方法： len([number])
+ *              例如 data-validate="len(11)"
+ *     minlen：验证值的最小长度
+ *              使用方法： minlen([number])
+ *              例如 data-validate="minlen(1)"
+ *     maxlen：验证值的最大长度
+ *              使用方法： maxlen([number])
+ *              例如 data-validate="maxlen(20)"
  */
 
 (function() {
@@ -47,6 +56,9 @@
         'register': '该账号已经注册！',
         'verify': '验证码错误！',
         'cn': '请输入中文！',
+        'len': '长度不符！',
+        'minlen': '长度不够！',
+        'maxlen': '长度太长！',
         'succeed': 'OK！'
     };
 
@@ -76,22 +88,22 @@
             var val = elem.v_get_val();
             var passwordElem = elem.form.querySelector(selector);
             return !passwordElem || val === passwordElem.value;
+        },
+        // 验证固定长度
+        len: function(elem, len) {
+            return elem.v_get_val().length === (Number(len) || 1);
+        },
+        // 验证最小长度
+        minlen: function(elem, len) {
+            return elem.v_get_val().length >= (Number(len) || 0);
+        },
+        // 验证最大长度
+        maxlen: function(elem, len) {
+            return elem.v_get_val().length <= (Number(len) || 18);
         }
     };
     // 验证文本
-    [
-        'email',
-        'phone',
-        'tell',
-        'number',
-        'integer',
-        'date',
-        'time',
-        'cn',
-        'plus',
-        'url',
-        'password'
-    ].forEach(function(rule) {
+    ['email', 'phone', 'tell', 'number', 'integer', 'date', 'time', 'cn', 'plus', 'url', 'password'].forEach(function(rule) {
         testRule[rule] = function(elem) {
             return !elem.v_get_val() || regex[rule] && regex[rule].test(elem.v_get_val());
         };
