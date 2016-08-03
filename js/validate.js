@@ -74,7 +74,7 @@
         cn: /^[^u4e00-u9fa5\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]+$/ig,// 中文
         plus: /^[\+]?((\d+)([\.,](\d+))?|([\.,](\d+))?)$/,           // 正数
         url: /^[a-zA-z]+:\/\/(\w+(-\w+)*)(\.(\w+(-\w+)*))*/,         // 链接
-        password: /^[\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]{6,30}$/    // 密码
+        password: /^[\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]{6,18}$/    // 密码
     };
 
     // 表单验证规则
@@ -289,9 +289,14 @@
                 elem.parentNode.appendChild(elem.v_tip_node);
             }
         }
-        elem.v_tip_node.className = (rule == 'succeed') ? 'tips succeed' : 'tips error';
+
+        if(rule == 'succeed') {
+            elem.v_tip_node.className = 'tips succeed';
+        } else {
+            elem.v_tip_node.className = 'tips error';
+            elem.focus();
+        }
         elem.v_tip_node.innerHTML = tip;
-        elem.focus();
     };
 
     HTMLFormElement.prototype.validateTip = validateTip;
