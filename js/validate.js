@@ -37,6 +37,9 @@
  *     maxlen：验证值的最大长度
  *              使用方法： maxlen([number])
  *              例如 data-validate="maxlen(20)"
+ *     regexp：自定义验证规则
+ *              使用方法： regexp([regexp string])
+ *              例如 data-validate="regexp(\d+)"
  */
 
 (function() {
@@ -50,7 +53,7 @@
         'number': '请输入数字！',
         'integer': '请输入整数！',
         'url': '请输入正确的网址！',
-        'password': '密码格式错误，请输入6到20个字符，必须包含数字和字母！',
+        'password': '密码格式错误，请输入6到18个字符！',
         'checkval': '两次输入的密码不一致！',
         'error': '格式错误！',
         'register': '该账号已经注册！',
@@ -65,10 +68,10 @@
     // 文本格式验证正则表达式
     var regex = {
         email: /^(\w)+(\W\w+)*@(\w)+(-\w+)*((\.\w+)+)$/,             // email
-        phone: /^1[3|4|5|8][0-9]\d{8,8}$/,                           // 手机号码
+        phone: /^1[3|4|5|7|8][0-9]\d{8,8}$/,                         // 手机号码
         tell: /\d{3}-\d{8}|\d{4}-\d{7,8}/,                           // 固话
         number: /^[\-\+]?((\d+)([\.,](\d+))?|([\.,](\d+))?)$/,       // 数字
-        integer: /^[\-\+]?((\d+))$/,                                 // 整数
+        integer: /^\d+$/,                                            // 整数
         date: /^\d{4}\W\d{1,2}\W\d{1,2}$/,                           // 日期
         time: /^\d{1,2}:\d{1,2}$/,                                   // 时间
         cn: /^[^u4e00-u9fa5\w~!@#$%^&*()_+{}:"<>?\-=[\];\',.\/]+$/ig,// 中文
@@ -100,6 +103,11 @@
         // 验证最大长度
         maxlen: function(elem, len) {
             return elem.v_get_val().length <= (Number(len) || 18);
+        },
+        // 自定义验证规则
+        regexp: function(elem, rule) {
+            var regexp = new RegExp(rule, 'g');
+            return regexp.test(elem.v_get_val());
         }
     };
     // 验证文本
@@ -279,24 +287,27 @@
                 var nodeArr = elem.form[elem.name];
                 var lastNode = nodeArr[nodeArr.length - 1];
                 if(!lastNode.v_tip_node){
-                    elem.v_tip_node = lastNode.v_tip_node = document.createElement('em');
+                    elem.v_tip_node = lastNode.v_tip_node = document.createElement('span');
                     lastNode.parentNode.appendChild(elem.v_tip_node);
                 } else {
                     elem.v_tip_node = lastNode.v_tip_node;
                 }
             } else {
-                elem.v_tip_node = document.createElement('em');
+                elem.v_tip_node = document.createElement('span');
                 elem.parentNode.appendChild(elem.v_tip_node);
             }
+            elem.v_tip_node.className = 'error-msg';
         }
 
-        if(rule == 'succeed') {
-            elem.v_tip_node.className = 'tips succeed';
+        if(rule == 'succeed'){
+            elem.v_tip_node.classList.add('hide');
+            elem.parentNode.classList.remove('error');
         } else {
-            elem.v_tip_node.className = 'tips error';
+            elem.v_tip_node.classList.remove('hide');
+            elem.parentNode.classList.add('error');
+            elem.v_tip_node.innerHTML = tip;
             elem.focus();
         }
-        elem.v_tip_node.innerHTML = tip;
     };
 
     HTMLFormElement.prototype.validateTip = validateTip;

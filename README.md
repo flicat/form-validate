@@ -48,3 +48,6 @@ data-validate 属性值：
 - `maxlen`：验证值的最大长度
 参数`[number])`：长度值
 例如 `data-validate="maxlen(20)"`
+- `regexp`：自定义验证规则
+使用方法： `regexp([regexp string])`
+例如 `data-validate="regexp(\d+)"`
